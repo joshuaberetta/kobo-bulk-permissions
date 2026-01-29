@@ -1,16 +1,20 @@
 {
 	"name": "bulk-permissions",
 	"version": "0.0.0",
+	"type": "module",
 	"private": true,
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
-		"start": "wrangler dev",
+		"start": "node server.js",
 		"test": "vitest"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.19",
 		"vitest": "~3.2.0",
 		"wrangler": "^4.42.1"
+	},
+	"dependencies": {
+		"@whatwg-node/server": "^0.10.18"
 	}
 }
