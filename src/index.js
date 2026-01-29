@@ -437,49 +437,53 @@ const HTML_CONTENT = `<!DOCTYPE html>
             box-sizing: border-box;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f4f5f7;
+            color: #586069;
             min-height: 100vh;
             padding: 20px;
             position: relative;
         }
         .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             max-width: 1200px;
             width: 100%;
             margin: 0 auto;
-            padding: 40px;
+            padding: 32px 40px;
         }
         h1 {
-            color: #333;
+            color: #2c3e50;
             margin-bottom: 10px;
-            font-size: 28px;
+            font-size: 24px;
+            font-weight: 500;
         }
         h2 {
-            color: #444;
+            color: #2c3e50;
             margin: 30px 0 15px 0;
-            font-size: 22px;
-            border-bottom: 2px solid #667eea;
+            font-size: 18px;
+            font-weight: 500;
+            border-bottom: 1px solid #e1e4e8;
             padding-bottom: 8px;
         }
+        h3 {
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
         .subtitle {
-            color: #666;
+            color: #7f8c8d;
             margin-bottom: 30px;
             font-size: 14px;
         }
-        .template-section {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 8px;
+        .template-section, .export-section {
+            background: #f8f9fa;
+            border-radius: 4px;
             padding: 25px;
             margin-bottom: 30px;
-        }
-        .export-section {
-            background: linear-gradient(135deg, #fff4e6 0%, #ffe4b5 100%);
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 30px;
+            border: 1px solid #e1e4e8;
         }
         .template-header {
             display: flex;
@@ -489,57 +493,57 @@ const HTML_CONTENT = `<!DOCTYPE html>
             flex-wrap: wrap;
             gap: 15px;
         }
-        .download-btn, .export-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .download-btn, .export-btn, .submit-btn {
+            background: #4A90E2;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 12px 16px;
+            border-radius: 3px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background-color 0.2s;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
         }
-        .export-btn {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        .download-btn:hover, .export-btn:hover, .submit-btn:hover {
+            background: #357ABD;
         }
-        .download-btn:hover, .export-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .download-btn:active, .export-btn:active, .submit-btn:active {
+            background: #2E6DA4;
         }
-        .export-btn:hover {
-            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+        .submit-btn {
+            width: 100%;
         }
-        .export-btn:disabled {
+        .export-btn:disabled, .submit-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
+            background: #95a5a6;
         }
         .info-box {
             background: #e8f4fd;
-            border-left: 4px solid #2196f3;
+            border-left: 4px solid #4A90E2;
             padding: 15px;
             margin: 15px 0;
             border-radius: 4px;
         }
         .info-box.warning {
             background: #fff3cd;
-            border-left-color: #f59e0b;
+            border-left-color: #ffc107;
         }
         .info-box h3 {
-            color: #1976d2;
+            color: #2c3e50;
             margin-bottom: 10px;
-            font-size: 16px;
+            font-size: 18px;
         }
         .info-box.warning h3 {
             color: #d97706;
         }
         .info-box ul {
             margin-left: 20px;
-            color: #555;
+            color: #586069;
             font-size: 14px;
         }
         .info-box li {
@@ -563,47 +567,49 @@ const HTML_CONTENT = `<!DOCTYPE html>
             background: white;
             padding: 10px;
             border-radius: 4px;
-            border: 1px solid #ddd;
+            border: 1px solid #d1d5da;
         }
         .column-name {
             font-family: 'Courier New', monospace;
             font-size: 12px;
             font-weight: bold;
-            color: #667eea;
+            color: #4A90E2;
         }
         .column-desc {
             font-size: 11px;
-            color: #666;
+            color: #7f8c8d;
             margin-top: 4px;
+            letter-spacing: 0.3px;
         }
         .form-group {
             margin-bottom: 20px;
         }
         .form-row {
             display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             align-items: end;
         }
         label {
             display: block;
             margin-bottom: 8px;
-            color: #444;
+            color: #2c3e50;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
         }
-        input[type="text"], textarea {
+        input[type="text"], input[type="password"], textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
+            padding: 11px 12px;
+            border: 1px solid #d1d5da;
+            border-radius: 3px;
             font-size: 14px;
-            transition: border-color 0.3s;
+            transition: border-color 0.2s, box-shadow 0.2s;
             font-family: inherit;
         }
-        input[type="text"]:focus, textarea:focus {
+        input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         }
         textarea {
             resize: vertical;
@@ -613,46 +619,23 @@ const HTML_CONTENT = `<!DOCTYPE html>
         }
         .help-text {
             font-size: 12px;
-            color: #666;
+            color: #7f8c8d;
             margin-top: 5px;
         }
         .example {
-            background: #f5f5f5;
+            background: #f8f9fa;
             padding: 10px;
             border-radius: 4px;
             font-family: 'Courier New', monospace;
             font-size: 11px;
             margin-top: 8px;
             overflow-x: auto;
-        }
-        .submit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            width: 100%;
-        }
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-        .submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+            border: 1px solid #d1d5da;
         }
         .result {
             margin-top: 20px;
             padding: 15px;
-            border-radius: 6px;
+            border-radius: 4px;
             display: none;
         }
         .result.success {
@@ -677,7 +660,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
         }
         .toggle-details {
             font-size: 12px;
-            color: #666;
+            color: #586069;
             text-decoration: underline;
         }
         .result-details {
@@ -688,7 +671,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             display: block;
         }
         .result pre {
-            background: rgba(0,0,0,0.05);
+            background: rgba(255,255,255,0.5);
             padding: 10px;
             border-radius: 4px;
             overflow-x: auto;
@@ -702,7 +685,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
         }
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #4A90E2;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -721,29 +704,28 @@ const HTML_CONTENT = `<!DOCTYPE html>
         }
         .example-user {
             padding: 15px;
-            border-radius: 6px;
-            border: 2px solid;
+            border-radius: 4px;
+            border: 1px solid #d1d5da;
+            background: #fff;
         }
         .example-user.admin {
-            background: #d4edda;
-            border-color: #c3e6cb;
+            border-left: 4px solid #28a745;
         }
         .example-user.partial {
-            background: #fff3cd;
-            border-color: #ffeaa7;
+            border-left: 4px solid #ffc107;
         }
         .example-user.viewer {
-            background: #d1ecf1;
-            border-color: #bee5eb;
+            border-left: 4px solid #17a2b8;
         }
         .example-user-name {
-            font-weight: bold;
+            font-weight: 500;
             margin-bottom: 5px;
             font-size: 14px;
+            color: #2c3e50;
         }
         .example-user-desc {
             font-size: 12px;
-            color: #555;
+            color: #586069;
         }
     </style>
 </head>
@@ -752,19 +734,45 @@ const HTML_CONTENT = `<!DOCTYPE html>
         <h1>🔐 KoboToolbox Bulk Permission Updater</h1>
         <p class="subtitle">Update permissions for multiple users across your KoboToolbox assets</p>
         
+        <div class="template-section">
+            <h2 style="margin: 0 0 20px 0; border: none; padding: 0;">⚙️ Configuration</h2>
+            <div class="form-group">
+                <label for="globalToken">API Token *</label>
+                <input type="password" id="globalToken" required placeholder="Your KoboToolbox API token">
+                <div class="help-text">Find your token in KoboToolbox: Account Settings → Security</div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-row">
+                    <div>
+                        <label for="globalBaseUrl">Base URL *</label>
+                        <input type="text" id="globalBaseUrl" value="https://kf.kobotoolbox.org" required>
+                    </div>
+                   <div>
+                        <label for="globalAssetUid">Asset UID *</label>
+                        <input type="text" id="globalAssetUid" required placeholder="e.g., aDfB7bVxuuUJZNuiBazM2k">
+                    </div>
+                </div>
+            </div>
+             <div class="form-group">
+                <label for="globalOwner">Owner Username (Required for Update)</label>
+                <input type="text" id="globalOwner" placeholder="your_username">
+                <div class="help-text">Used for updates. Optional for export (if provided, excludes owner from export).</div>
+            </div>
+        </div>
+
         <div class="export-section">
             <div class="template-header">
                 <div>
                     <h2 style="margin: 0; border: none; padding: 0;">📤 Export Current Permissions</h2>
-                    <p style="color: #666; font-size: 13px; margin-top: 5px;">Download existing permissions as TSV template</p>
+                    <p style="color: #7f8c8d; font-size: 13px; margin-top: 5px;">Download existing permissions as TSV template</p>
                 </div>
             </div>
 
             <div class="info-box warning">
                 <h3>📋 How to Export</h3>
                 <ul>
-                    <li>Enter your API token and asset UID</li>
-                    <li><strong>Optional:</strong> Enter owner username to exclude them from export</li>
+                    <li>Fill in the <strong>Configuration</strong> section above</li>
                     <li>Click "Export Permissions" to download current permissions</li>
                     <li>The file will be in the same format as the template</li>
                     <li><strong>Note:</strong> Multiple filter values are comma-separated (e.g., <code>val1,val2,val3</code>)</li>
@@ -775,37 +783,15 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
             <form id="exportForm">
                 <div class="form-group">
-                    <label for="exportToken">API Token *</label>
-                    <input type="text" id="exportToken" required placeholder="Your KoboToolbox API token">
-                </div>
-
-                <div class="form-group">
-                    <label for="exportBaseUrl">Base URL *</label>
-                    <input type="text" id="exportBaseUrl" value="https://kf.kobotoolbox.org" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="exportOwner">Owner Username (optional)</label>
-                    <input type="text" id="exportOwner" placeholder="Leave blank to include all users">
-                    <div class="help-text">Exclude owner from export (owner's permissions cannot be changed)</div>
-                </div>
-
-                <div class="form-group">
-                    <div class="form-row">
-                        <div>
-                            <label for="exportAssetUid">Asset UID *</label>
-                            <input type="text" id="exportAssetUid" required placeholder="e.g., aDfB7bVxuuUJZNuiBazM2k">
-                        </div>
-                        <button type="submit" class="export-btn">
-                            <span>📤</span> Export Permissions
-                        </button>
-                    </div>
+                    <button type="submit" class="export-btn">
+                        <span>📤</span> Export Permissions
+                    </button>
                 </div>
             </form>
 
             <div class="loading" id="exportLoading">
                 <div class="spinner"></div>
-                <p style="margin-top: 10px; color: #666;">Exporting...</p>
+                <p style="margin-top: 10px; color: #7f8c8d;">Exporting...</p>
             </div>
 
             <div id="exportResult" class="result"></div>
@@ -815,7 +801,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             <div class="template-header">
                 <div>
                     <h2 style="margin: 0; border: none; padding: 0;">📋 Permission Template</h2>
-                    <p style="color: #666; font-size: 13px; margin-top: 5px;">Download the blank template to get started</p>
+                    <p style="color: #7f8c8d; font-size: 13px; margin-top: 5px;">Download the blank template to get started</p>
                 </div>
                 <button class="download-btn" onclick="downloadTemplate()">
                     <span>⬇</span> Download Blank Template
@@ -835,7 +821,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             </div>
 
             <div>
-                <h3 style="color: #444; font-size: 16px; margin: 15px 0 10px 0;">Template Columns (21 total)</h3>
+                <h3 style="color: #2c3e50; font-size: 18px; margin: 15px 0 10px 0;">Template Columns (21 total)</h3>
                 <div class="columns-grid">
                     <div class="column-item"><div class="column-name">username</div><div class="column-desc">KoboToolbox username</div></div>
                     <div class="column-item"><div class="column-name">view_form</div><div class="column-desc">View form design</div></div>
@@ -862,7 +848,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             </div>
 
             <div>
-                <h3 style="color: #444; font-size: 16px; margin: 20px 0 10px 0;">Example Users in Template</h3>
+                <h3 style="color: #2c3e50; font-size: 18px; margin: 20px 0 10px 0;">Example Users in Template</h3>
                 <div class="example-users">
                     <div class="example-user admin">
                         <div class="example-user-name">steve_kobo - Full Admin</div>
@@ -884,29 +870,6 @@ const HTML_CONTENT = `<!DOCTYPE html>
         
         <form id="permissionForm">
             <div class="form-group">
-                <label for="token">API Token *</label>
-                <input type="text" id="token" required placeholder="Your KoboToolbox API token">
-                <div class="help-text">Find your token in KoboToolbox: Account Settings → Security</div>
-            </div>
-
-            <div class="form-group">
-                <label for="baseUrl">Base URL *</label>
-                <input type="text" id="baseUrl" value="https://kf.kobotoolbox.org" required>
-                <div class="help-text">Usually https://kf.kobotoolbox.org or https://eu.kobotoolbox.org</div>
-            </div>
-
-            <div class="form-group">
-                <label for="assetUid">Asset UID *</label>
-                <input type="text" id="assetUid" required placeholder="e.g., aDfB7bVxuuUJZNuiBazM2k">
-                <div class="help-text">aDfB7bVxuuUJZNuiBazM2k</div>
-            </div>
-
-            <div class="form-group">
-                <label for="owner">Owner Username *</label>
-                <input type="text" id="owner" required placeholder="your_username">
-            </div>
-
-            <div class="form-group">
                 <label for="spreadsheetData">Spreadsheet Data *</label>
                 <textarea id="spreadsheetData" required placeholder="Paste your data here..."></textarea>
                 <div class="help-text">
@@ -922,7 +885,7 @@ steve_kobo	TRUE	TRUE	TRUE	TRUE	TRUE...</div>
 
         <div class="loading">
             <div class="spinner"></div>
-            <p style="margin-top: 10px; color: #666;">Processing...</p>
+            <p style="margin-top: 10px; color: #7f8c8d;">Processing...</p>
         </div>
 
         <div id="result" class="result"></div>
@@ -937,10 +900,15 @@ steve_kobo	TRUE	TRUE	TRUE	TRUE	TRUE...</div>
         document.getElementById('exportForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const token = document.getElementById('exportToken').value.trim();
-            const baseUrl = document.getElementById('exportBaseUrl').value.trim();
-            const assetUid = document.getElementById('exportAssetUid').value.trim();
-            const owner = document.getElementById('exportOwner').value.trim();
+            const token = document.getElementById('globalToken').value.trim();
+            const baseUrl = document.getElementById('globalBaseUrl').value.trim();
+            const assetUid = document.getElementById('globalAssetUid').value.trim();
+            const owner = document.getElementById('globalOwner').value.trim();
+
+            if (!token || !baseUrl || !assetUid) {
+                alert('Please fill in the Configuration section (Token, Base URL, Asset UID)');
+                return;
+            }
             
             const resultDiv = document.getElementById('exportResult');
             const loadingDiv = document.getElementById('exportLoading');
@@ -1000,12 +968,17 @@ steve_kobo	TRUE	TRUE	TRUE	TRUE	TRUE...</div>
         document.getElementById('permissionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const token = document.getElementById('token').value.trim();
-            const baseUrl = document.getElementById('baseUrl').value.trim();
-            const assetUid = document.getElementById('assetUid').value.trim();
-            const owner = document.getElementById('owner').value.trim();
+            const token = document.getElementById('globalToken').value.trim();
+            const baseUrl = document.getElementById('globalBaseUrl').value.trim();
+            const assetUid = document.getElementById('globalAssetUid').value.trim();
+            const owner = document.getElementById('globalOwner').value.trim();
             const spreadsheetData = document.getElementById('spreadsheetData').value.trim();
             
+            if (!token || !baseUrl || !assetUid || !owner) {
+                alert('Please fill in the Configuration section (Token, Base URL, Asset UID, Owner)');
+                return;
+            }
+
             const resultDiv = document.getElementById('result');
             const loadingDiv = document.querySelector('.loading');
             const submitBtn = document.querySelector('.submit-btn');
