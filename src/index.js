@@ -55,8 +55,9 @@ function handleTemplateDownload() {
 
   const exampleRows = [
     ['steve_kobo', 'TRUE', 'TRUE', 'TRUE', 'TRUE', 'TRUE', 'TRUE', 'TRUE', 'TRUE', 'FALSE', '', '', 'FALSE', '', '', 'FALSE', '', '', 'FALSE', '', ''],
-    ['bob_kobo', 'TRUE', 'FALSE', 'FALSE', 'TRUE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', 'organization', 'bar', 'FALSE', '', '', 'FALSE', '', '', 'TRUE', 'organization', 'bar'],
-    ['alice_viewer', 'TRUE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', '_submitted_by', 'alice_viewer', 'FALSE', '', '', 'FALSE', '', '', 'FALSE', '', '']
+    ['bob_kobo', 'TRUE', 'FALSE', 'FALSE', 'TRUE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', 'sector', 'wash', 'TRUE', 'sector', 'wash', 'FALSE', '', '', 'TRUE', 'sector', 'wash'],
+    ['alice_viewer', 'TRUE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', '_submitted_by', 'alice_viewer', 'FALSE', '', '', 'FALSE', '', '', 'FALSE', '', ''],
+    ['multi_field_user', 'TRUE', 'FALSE', 'FALSE', 'TRUE', 'FALSE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', '', 'sector=wash,protection;province=gaza', 'FALSE', '', '', 'FALSE', '', '', 'FALSE', '', '']
   ];
 
   const tsvContent = [
@@ -127,6 +128,50 @@ async function handlePermissionExport(request) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
+}
+
+function formatFiltersForExport(filters) {
+  if (!filters || filters.length === 0) {
+    return { filterField: '', filterValue: '' };
+  }
+  
+  // Group filters by field name
+  const fieldGroups = {};
+  
+  for (const filter of filters) {
+    const field = Object.keys(filter)[0];
+    const value = filter[field];
+    
+    if (field && value) {
+      if (!fieldGroups[field]) {
+        fieldGroups[field] = [];
+      }
+      if (!fieldGroups[field].includes(value)) {
+        fieldGroups[field].push(value);
+      }
+    }
+  }
+  
+  const fieldNames = Object.keys(fieldGroups);
+  
+  // If only one field, use legacy format for backwards compatibility
+  if (fieldNames.length === 1) {
+    const field = fieldNames[0];
+    return {
+      filterField: field,
+      filterValue: fieldGroups[field].join(',')
+    };
+  }
+  
+  // Multiple fields: use new format "field1=value1,value2;field2=value3"
+  const pairs = fieldNames.map(field => 
+    `${field}=${fieldGroups[field].join(',')}`
+  );
+  
+  return {
+    filterField: '',  // Empty for new format
+    filterValue: pairs.join(';')
+  };
 }
 
 function convertPermissionsToTSV(permissions) {
@@ -203,24 +248,8 @@ function convertPermissionsToTSV(permissions) {
       for (const pp of perm.partial_permissions) {
         const ppName = pp.url.split('/').filter(p => p).pop();
         
-        // Collect all filter values for this permission type
-        const filterValues = [];
-        let filterField = '';
-        
-        if (pp.filters && pp.filters.length > 0) {
-          // Get the filter field name from first filter
-          filterField = Object.keys(pp.filters[0])[0] || '';
-          
-          // Collect all values (supports multiple filters)
-          for (const filter of pp.filters) {
-            const value = filter[filterField];
-            if (value && !filterValues.includes(value)) {
-              filterValues.push(value);
-            }
-          }
-        }
-        
-        const filterValue = filterValues.join(',');
+        // Convert filters to the new format: "field1=value1,value2;field2=value3"
+        const { filterField, filterValue } = formatFiltersForExport(pp.filters);
         
         if (ppName === 'view_submissions') {
           userPerms[username].partial_view = 'TRUE';
@@ -316,7 +345,11 @@ async function handlePermissionUpdate(request) {
       success: updateRes.ok,
       status: updateRes.status,
       message: `Updated permissions for ${users.length} users on asset ${assetUid}`,
-      data: responseData
+      data: responseData,
+      debug: {
+        userPermsSent: userPerms,
+        totalPermsSent: allPerms.length
+      }
     }), {
       status: updateRes.status,
       headers: { 'Content-Type': 'application/json' }
@@ -330,6 +363,53 @@ async function handlePermissionUpdate(request) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
+}
+
+function parseFilterFieldsAndValues(filterField, filterValue) {
+  // Support two formats:
+  // 1. Legacy: single field in filterField, comma-separated values in filterValue
+  //    e.g., filterField="sector", filterValue="wash,protection"
+  // 2. New: field=value pairs in filterValue (filterField can be empty or ignored)
+  //    e.g., filterValue="sector=wash,protection;province=gaza"
+  //    OR filterValue="sector=wash;province=gaza;region=north"
+  
+  const filters = [];
+  
+  // Clean up the values: trim and remove quotes that might come from TSV parsing
+  filterField = (filterField || '').trim().replace(/^["']|["']$/g, '');
+  filterValue = (filterValue || '').trim().replace(/^["']|["']$/g, '');
+  
+  // Return empty if no filter value
+  if (!filterValue) {
+    return filters;
+  }
+  
+  // Check if filterValue contains '=' (new format with field=value pairs)
+  if (filterValue.includes('=')) {
+    // New format: parse "field1=value1,value2;field2=value3"
+    const fieldValuePairs = filterValue.split(';').map(p => p.trim()).filter(p => p);
+    
+    for (const pair of fieldValuePairs) {
+      const [field, values] = pair.split('=').map(s => s.trim());
+      if (field && values) {
+        // Split values by comma for multiple values per field
+        const valueList = values.split(',').map(v => v.trim()).filter(v => v);
+        for (const value of valueList) {
+          filters.push({ [field]: value });
+        }
+      }
+    }
+  } else {
+    // Legacy format: single field with comma-separated values
+    if (filterField && filterValue) {
+      const values = filterValue.split(',').map(v => v.trim()).filter(v => v);
+      for (const value of values) {
+        filters.push({ [filterField]: value });
+      }
+    }
+  }
+  
+  return filters;
 }
 
 function buildUserPermissions(user, baseUrl) {
@@ -360,53 +440,48 @@ function buildUserPermissions(user, baseUrl) {
   // Partial permissions
   const partialPerms = [];
   
-  if (user.partial_view === 'TRUE' && user.partial_view_filter_field && user.partial_view_filter_value) {
-    // Handle comma-separated values for multiple filters
-    const filterValues = user.partial_view_filter_value.split(',').map(v => v.trim()).filter(v => v);
-    const filters = filterValues.map(value => ({
-      [user.partial_view_filter_field]: value
-    }));
+  if (user.partial_view === 'TRUE' && user.partial_view_filter_value) {
+    const filters = parseFilterFieldsAndValues(user.partial_view_filter_field, user.partial_view_filter_value);
     
-    partialPerms.push({
-      perm: 'view_submissions',
-      filters: filters
-    });
+    if (filters.length > 0) {
+      partialPerms.push({
+        perm: 'view_submissions',
+        filters: filters
+      });
+    }
   }
 
-  if (user.partial_edit === 'TRUE' && user.partial_edit_filter_field && user.partial_edit_filter_value) {
-    const filterValues = user.partial_edit_filter_value.split(',').map(v => v.trim()).filter(v => v);
-    const filters = filterValues.map(value => ({
-      [user.partial_edit_filter_field]: value
-    }));
+  if (user.partial_edit === 'TRUE' && user.partial_edit_filter_value) {
+    const filters = parseFilterFieldsAndValues(user.partial_edit_filter_field, user.partial_edit_filter_value);
     
-    partialPerms.push({
-      perm: 'change_submissions',
-      filters: filters
-    });
+    if (filters.length > 0) {
+      partialPerms.push({
+        perm: 'change_submissions',
+        filters: filters
+      });
+    }
   }
 
-  if (user.partial_delete === 'TRUE' && user.partial_delete_filter_field && user.partial_delete_filter_value) {
-    const filterValues = user.partial_delete_filter_value.split(',').map(v => v.trim()).filter(v => v);
-    const filters = filterValues.map(value => ({
-      [user.partial_delete_filter_field]: value
-    }));
+  if (user.partial_delete === 'TRUE' && user.partial_delete_filter_value) {
+    const filters = parseFilterFieldsAndValues(user.partial_delete_filter_field, user.partial_delete_filter_value);
     
-    partialPerms.push({
-      perm: 'delete_submissions',
-      filters: filters
-    });
+    if (filters.length > 0) {
+      partialPerms.push({
+        perm: 'delete_submissions',
+        filters: filters
+      });
+    }
   }
 
-  if (user.partial_validate === 'TRUE' && user.partial_validate_filter_field && user.partial_validate_filter_value) {
-    const filterValues = user.partial_validate_filter_value.split(',').map(v => v.trim()).filter(v => v);
-    const filters = filterValues.map(value => ({
-      [user.partial_validate_filter_field]: value
-    }));
+  if (user.partial_validate === 'TRUE' && user.partial_validate_filter_value) {
+    const filters = parseFilterFieldsAndValues(user.partial_validate_filter_field, user.partial_validate_filter_value);
     
-    partialPerms.push({
-      perm: 'validate_submissions',
-      filters: filters
-    });
+    if (filters.length > 0) {
+      partialPerms.push({
+        perm: 'validate_submissions',
+        filters: filters
+      });
+    }
   }
 
   // Add partial permissions if any exist
@@ -775,7 +850,8 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     <li>Fill in the <strong>Configuration</strong> section above</li>
                     <li>Click "Export Permissions" to download current permissions</li>
                     <li>The file will be in the same format as the template</li>
-                    <li><strong>Note:</strong> Multiple filter values are comma-separated (e.g., <code>val1,val2,val3</code>)</li>
+                    <li><strong>Single field, multiple values:</strong> <code>sector</code> → <code>wash,protection</code></li>
+                    <li><strong>Multiple fields:</strong> Filter field will be empty, value shows: <code>sector=wash;province=gaza</code></li>
                     <li>Make your changes in Excel/Google Sheets</li>
                     <li>Upload the modified file below to update permissions</li>
                 </ul>
@@ -815,8 +891,10 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     <li><strong>Full permissions</strong> (e.g., <code>view_submissions</code>) grant access to ALL submissions</li>
                     <li><strong>Partial permissions</strong> require both the permission flag AND filter field/value</li>
                     <li>Don't use both full and partial for the same action (they're mutually exclusive)</li>
-                    <li>Common filter fields: <code>_submitted_by</code>, <code>organization</code>, <code>region</code></li>
-                    <li><strong>Multiple filter values:</strong> Separate with commas: <code>org1,org2,org3</code></li>
+                    <li>Common filter fields: <code>_submitted_by</code>, <code>organization</code>, <code>region</code>, <code>sector</code>, <code>province</code></li>
+                    <li><strong>Single field, multiple values:</strong> <code>sector</code> → <code>wash,protection</code></li>
+                    <li><strong>Multiple fields:</strong> Leave filter_field empty, use <code>sector=wash;province=gaza</code> in filter_value</li>
+                    <li><strong>Multiple fields with multiple values:</strong> <code>sector=wash,protection;province=gaza,rafah</code></li>
                 </ul>
             </div>
 
@@ -833,17 +911,17 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     <div class="column-item"><div class="column-name">delete_submissions</div><div class="column-desc">Delete all submissions</div></div>
                     <div class="column-item"><div class="column-name">validate_submissions</div><div class="column-desc">Validate all submissions</div></div>
                     <div class="column-item"><div class="column-name">partial_view</div><div class="column-desc">View filtered submissions</div></div>
-                    <div class="column-item"><div class="column-name">partial_view_filter_field</div><div class="column-desc">Filter field for view</div></div>
-                    <div class="column-item"><div class="column-name">partial_view_filter_value</div><div class="column-desc">Filter value for view</div></div>
+                    <div class="column-item"><div class="column-name">partial_view_filter_field</div><div class="column-desc">Filter field for view (can be empty for multi-field)</div></div>
+                    <div class="column-item"><div class="column-name">partial_view_filter_value</div><div class="column-desc">Filter value(s) or field=value pairs</div></div>
                     <div class="column-item"><div class="column-name">partial_edit</div><div class="column-desc">Edit filtered submissions</div></div>
-                    <div class="column-item"><div class="column-name">partial_edit_filter_field</div><div class="column-desc">Filter field for edit</div></div>
-                    <div class="column-item"><div class="column-name">partial_edit_filter_value</div><div class="column-desc">Filter value for edit</div></div>
+                    <div class="column-item"><div class="column-name">partial_edit_filter_field</div><div class="column-desc">Filter field for edit (can be empty for multi-field)</div></div>
+                    <div class="column-item"><div class="column-name">partial_edit_filter_value</div><div class="column-desc">Filter value(s) or field=value pairs</div></div>
                     <div class="column-item"><div class="column-name">partial_delete</div><div class="column-desc">Delete filtered submissions</div></div>
-                    <div class="column-item"><div class="column-name">partial_delete_filter_field</div><div class="column-desc">Filter field for delete</div></div>
-                    <div class="column-item"><div class="column-name">partial_delete_filter_value</div><div class="column-desc">Filter value for delete</div></div>
+                    <div class="column-item"><div class="column-name">partial_delete_filter_field</div><div class="column-desc">Filter field for delete (can be empty for multi-field)</div></div>
+                    <div class="column-item"><div class="column-name">partial_delete_filter_value</div><div class="column-desc">Filter value(s) or field=value pairs</div></div>
                     <div class="column-item"><div class="column-name">partial_validate</div><div class="column-desc">Validate filtered submissions</div></div>
-                    <div class="column-item"><div class="column-name">partial_validate_filter_field</div><div class="column-desc">Filter field for validate</div></div>
-                    <div class="column-item"><div class="column-name">partial_validate_filter_value</div><div class="column-desc">Filter value for validate</div></div>
+                    <div class="column-item"><div class="column-name">partial_validate_filter_field</div><div class="column-desc">Filter field for validate (can be empty for multi-field)</div></div>
+                    <div class="column-item"><div class="column-name">partial_validate_filter_value</div><div class="column-desc">Filter value(s) or field=value pairs</div></div>
                 </div>
             </div>
 
@@ -855,12 +933,16 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         <div class="example-user-desc">Has all permissions to view, edit, manage, and validate everything</div>
                     </div>
                     <div class="example-user partial">
-                        <div class="example-user-name">bob_kobo - Partial Access</div>
-                        <div class="example-user-desc">Can view form and add submissions. Can view and validate only where organization=bar</div>
+                        <div class="example-user-name">bob_kobo - Single Field Filter</div>
+                        <div class="example-user-desc">Can view form and add submissions. Partial view/edit/validate for sector=wash</div>
                     </div>
                     <div class="example-user viewer">
                         <div class="example-user-name">alice_viewer - Own Submissions Only</div>
                         <div class="example-user-desc">Can only view submissions she created (_submitted_by=alice_viewer)</div>
+                    </div>
+                    <div class="example-user partial">
+                        <div class="example-user-name">multi_field_user - Multiple Fields</div>
+                        <div class="example-user-desc">Can view where sector=wash OR protection AND province=gaza (demonstrates multiple filter fields)</div>
                     </div>
                 </div>
             </div>
